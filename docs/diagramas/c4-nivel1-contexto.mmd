@@ -1,0 +1,26 @@
+---
+title: "SportBook Cali — C4 Nivel 1: Diagrama de contexto"
+---
+flowchart TB
+    jugador(["<b>Jugador</b><br/><i>[Persona]</i><br/><br/>Usuario que busca, reserva y paga<br/>canchas deportivas y califica<br/>los complejos que usó."])
+    admin(["<b>Administrador del complejo</b><br/><i>[Persona]</i><br/><br/>Encargado de un complejo deportivo;<br/>gestiona sus canchas, horarios y precios."])
+
+    sportbook["<b>SportBook</b><br/><i>[Sistema de software]</i><br/><br/>Plataforma para consultar disponibilidad,<br/>reservar y pagar canchas de fútbol 5,<br/>pádel y baloncesto en complejos de Cali."]
+
+    pasarela["<b>Pasarela de pagos</b><br/><i>[Sistema externo]</i><br/><br/>Procesa pagos en línea<br/>con PSE y tarjeta."]
+    correo["<b>Proveedor de correo</b><br/><i>[Sistema externo]</i><br/><br/>Entrega al jugador correos<br/>electrónicos transaccionales."]
+    whatsapp["<b>API de mensajería WhatsApp</b><br/><i>[Sistema externo]</i><br/><br/>Entrega al jugador mensajes<br/>de WhatsApp."]
+
+    jugador -- "Se registra, consulta disponibilidad,<br/>reserva y califica" --> sportbook
+    admin -- "Gestiona canchas,<br/>horarios y precios" --> sportbook
+    jugador -- "Completa el pago<br/>(PSE o tarjeta)" --> pasarela
+    sportbook -- "Crea la transacción de pago<br/>y recibe su resultado" --> pasarela
+    sportbook -- "Envía confirmaciones<br/>y recordatorios" --> correo
+    sportbook -- "Envía confirmaciones<br/>y recordatorios" --> whatsapp
+
+    classDef person fill:#08427b,stroke:#052e56,color:#ffffff
+    classDef system fill:#1168bd,stroke:#0b4884,color:#ffffff
+    classDef external fill:#8a8a8a,stroke:#6b6b6b,color:#ffffff
+    class jugador,admin person
+    class sportbook system
+    class pasarela,correo,whatsapp external
