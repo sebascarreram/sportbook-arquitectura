@@ -22,4 +22,18 @@
 
 
 
-## Parte 4. Reflexión critica
+## Parte 4. Reflexión critica 
+
+**1. ¿Cuál es el mayor riesgo de la arquitectura elegida?**
+
+El mayor riesgo es que el monolito modular se degrade en un monolito acoplado: con la presión de las entregas, los módulos pueden empezar a usar directamente las tablas de otros, y la evolución planeada hacia microservicios se volvería costosa. Además, la aplicación y la base de datos única comparten el mismo punto de falla: un error grave o una consulta lenta en los picos de fin de semana afectaría a todo el sistema, incluidas las reservas y los pagos. Se mitiga con pruebas de arquitectura (Spring Modulith o ArchUnit), varias instancias y monitoreo.
+
+**2. ¿Qué cambiaría con diez veces el tráfico planeado?**
+
+Primero aliviaría la base de datos con caché (Redis) y réplicas de lectura para la consulta de disponibilidad, que es la operación más frecuente. Luego extraería como microservicios los módulos con más carga, empezando por Disponibilidad y Notificaciones (este ya está desacoplado por la cola), cada uno con su propia base de datos y escalado independiente, siguiendo el patrón strangler. Esto exigiría contenedores con orquestación administrada, monitoreo distribuido y al menos una persona de DevOps.
+
+---
+
+## Declaración de uso de inteligencia artificial
+
+Usé Claude (Anthropic, modelo Opus 5.5) como apoyo para: explicar los conceptos de MVC, SOA, microservicios, ADR y modelo C4; proponer la redacción de la tabla comparativa, los ADR-001 y ADR-002 y la reflexión crítica.
