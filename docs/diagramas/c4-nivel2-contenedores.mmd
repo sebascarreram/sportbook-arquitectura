@@ -1,0 +1,37 @@
+---
+title: "SportBook Cali — C4 Nivel 2: Diagrama de contenedores"
+---
+flowchart TB
+    jugador(["<b>Jugador</b><br/><i>[Persona]</i><br/><br/>Busca, reserva, paga y<br/>califica canchas."])
+    admin(["<b>Administrador del complejo</b><br/><i>[Persona]</i><br/><br/>Gestiona canchas,<br/>horarios y precios."])
+
+    subgraph sb["SportBook [Sistema de software]"]
+        app["<b>Aplicación web SportBook</b><br/><i>[Contenedor: Java 21, Spring Boot 3, Spring MVC, Thymeleaf]</i><br/><br/>Monolito modular (ADR-001). Sirve las páginas web y contiene<br/>los módulos Usuarios, Complejos y Disponibilidad, Reservas y Pagos,<br/>Notificaciones y Calificaciones. Varias instancias detrás de un<br/>balanceador con autoescalado en la nube."]
+        db[("<b>Base de datos</b><br/><i>[Contenedor: PostgreSQL 16 administrado]</i><br/><br/>Usuarios, complejos, canchas, horarios,<br/>precios, reservas, pagos y calificaciones.<br/>Un esquema por módulo.")]
+        broker[["<b>Broker de mensajes</b><br/><i>[Contenedor: RabbitMQ administrado]</i><br/><br/>Colas de eventos ReservaConfirmada<br/>y RecordatorioReserva, con<br/>dead-letter queue (ADR-002)."]]
+    end
+
+    pasarela["<b>Pasarela de pagos</b><br/><i>[Sistema externo]</i><br/><br/>Procesa pagos con PSE y tarjeta."]
+    correo["<b>Proveedor de correo</b><br/><i>[Sistema externo]</i><br/><br/>Envía correos transaccionales."]
+    whatsapp["<b>API de mensajería WhatsApp</b><br/><i>[Sistema externo]</i><br/><br/>Envía mensajes de WhatsApp."]
+
+    jugador -- "Consulta disponibilidad,<br/>reserva y califica<br/>[HTTPS]" --> app
+    admin -- "Gestiona canchas,<br/>horarios y precios<br/>[HTTPS]" --> app
+    jugador -- "Completa el pago<br/>[HTTPS, redirección]" --> pasarela
+
+    app -- "Lee y escribe datos<br/>[JDBC / SQL]" --> db
+    app -- "Publica eventos de<br/>notificación [AMQP]" --> broker
+    broker -- "Consume eventos<br/>(módulo Notificaciones)<br/>[AMQP]" --> app
+
+    app -- "Crea transacción<br/>de pago<br/>[HTTPS / REST]" --> pasarela
+    pasarela -- "Notifica resultado<br/>del pago<br/>[HTTPS, webhook]" --> app
+    app -- "Envía correos<br/>[HTTPS / REST]" --> correo
+    app -- "Envía mensajes<br/>[HTTPS / REST]" --> whatsapp
+
+    classDef person fill:#08427b,stroke:#052e56,color:#ffffff
+    classDef container fill:#438dd5,stroke:#2e6295,color:#ffffff
+    classDef external fill:#8a8a8a,stroke:#6b6b6b,color:#ffffff
+    class jugador,admin person
+    class app,db,broker container
+    class pasarela,correo,whatsapp external
+    style sb fill:#ffffff,stroke:#1168bd,stroke-width:2px,stroke-dasharray: 6 4,color:#1168bd
